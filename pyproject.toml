@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "edge-or-cloud"
+version = "0.1.0"
+description = "Where should a self-driving car think? Benchmarking edge, cloud, and adaptive offloading of driving decisions over realistic networks."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name = "Gowtham Reddy Kotha"}]
+dependencies = ["highway-env>=1.10", "gymnasium>=1.0", "numpy>=1.24", "scikit-learn>=1.4", "joblib>=1.3"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+edgecloud = "edgecloud.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["edgecloud*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

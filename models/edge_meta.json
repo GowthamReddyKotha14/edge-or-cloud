@@ -1,0 +1,10 @@
+{
+  "states": 4308,
+  "agreement_with_planner": 0.386,
+  "params": 2789,
+  "features": 30,
+  "dagger": [
+    "round 1: +1194 states, crashed 11/25",
+    "round 2: +1246 states, crashed 13/25"
+  ]
+}

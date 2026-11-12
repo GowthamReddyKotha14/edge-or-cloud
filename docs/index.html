@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Edge or Cloud: where should a self-driving car think?</title>
+<meta name="description" content="360 simulated drives comparing edge, cloud, and adaptive offloading of driving decisions over 5G, 4G, and weak signal. Watch real recorded replays.">
+<meta property="og:title" content="Edge or Cloud">
+<meta property="og:description" content="Where should a self-driving car think? Benchmarked over 360 simulated drives.">
+<meta name="theme-color" content="#0a0f1a">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0f1a; --bg2:#0e1524; --card:#121b2d; --card2:#16213a; --line:#22304d; --line2:#2e3f63;
+  --ink:#f1f4fa; --ink2:#c2cbdc; --ink3:#93a0b8;
+  --cloud:#4dabf7; --edge:#fcc419; --fallback:#b197fc; --stale:#ff6b6b; --ok:#51cf66; --car:#7d8aa3;
+  --display:"Chakra Petch",system-ui,sans-serif; --body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth;scroll-padding-top:calc(76px + env(safe-area-inset-top,0px))}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}}
+body{margin:0;background:var(--bg);color:var(--ink2);font:400 1rem/1.65 var(--body);padding-bottom:env(safe-area-inset-bottom,0px)}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:radial-gradient(1000px 500px at 80% -10%,rgba(77,171,247,.14),transparent 60%),radial-gradient(700px 500px at 0% 30%,rgba(252,196,25,.06),transparent 60%)}
+a{color:var(--cloud)}
+:focus-visible{outline:3px solid var(--edge);outline-offset:3px;border-radius:6px}
+h1,h2,h3{font-family:var(--display);color:var(--ink);letter-spacing:-.01em;margin:0}
+code,.mono{font-family:var(--mono)}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+.skip{position:absolute;left:-999px;top:0}.skip:focus{left:16px;top:16px;z-index:100;background:var(--card);padding:8px 14px}
+.vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+.nav{position:sticky;top:0;z-index:50;padding-top:env(safe-area-inset-top,0px);background:rgba(10,15,26,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;align-items:center;gap:24px;height:68px}
+.brand{display:flex;align-items:center;gap:10px;color:var(--ink);text-decoration:none;font:700 1.2rem var(--display)}
+.brand .logo{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,var(--edge),var(--cloud));color:#0a0f1a;font-weight:700}
+.nav nav{flex:1;display:flex;justify-content:center}
+.nav ul{display:flex;gap:22px;list-style:none;margin:0;padding:0}
+.nav ul a{color:var(--ink2);text-decoration:none;font-weight:500;font-size:.95rem}
+.nav ul a:hover{color:var(--ink)}
+@media (max-width:860px){.nav nav{display:none}.nav .wrap{justify-content:space-between}}
+.btn{display:inline-flex;align-items:center;gap:8px;border-radius:12px;padding:11px 18px;font:600 .95rem var(--body);text-decoration:none;cursor:pointer;border:1px solid var(--line2);background:var(--card2);color:var(--ink);transition:transform .15s,border-color .15s}
+.btn:hover{transform:translateY(-1px);border-color:var(--cloud)}
+.btn.primary{background:linear-gradient(90deg,var(--edge),var(--cloud));color:#0a0f1a;border:0}
+.btn.small{padding:7px 12px;font-size:.85rem;border-radius:10px}
+
+.hero{padding:72px 0 40px}
+.hero .wrap{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center}
+.hero .wrap>*{min-width:0}
+@media (max-width:980px){.hero .wrap{grid-template-columns:1fr}}
+.pill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line2);background:rgba(18,27,45,.8);border-radius:999px;padding:6px 14px;font-size:.85rem}
+.pill i{width:8px;height:8px;border-radius:50%;background:var(--edge);box-shadow:0 0 10px var(--edge)}
+.hero h1{font-size:clamp(2.3rem,5vw,3.7rem);line-height:1.04;margin:18px 0 16px;font-weight:700}
+.hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--edge),var(--cloud));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p.sub{font-size:1.12rem;max-width:35rem;margin:0 0 26px}
+.hero p.sub strong{color:var(--ink)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:28px}
+@media (max-width:560px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:14px;padding:14px 10px;text-align:center}
+.stat b{display:block;font:700 1.55rem var(--display);color:var(--ink);white-space:nowrap}
+.stat span{font-size:.78rem;color:var(--ink3);line-height:1.35;display:block}
+.cta{display:flex;gap:12px;flex-wrap:wrap}
+.versus{display:grid;gap:12px}
+.vs{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+.vs .t{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:8px}
+.vs .t b{font:600 1rem var(--display);color:var(--ink)}
+.vs .t span{font:.8rem var(--mono);color:var(--ink3)}
+.vs canvas{width:100%;height:auto;display:block;border-radius:10px;background:#1a2132}
+.vs .res{font-weight:600;font-size:.9rem;margin-top:8px}
+.vs .res.bad{color:var(--stale)}.vs .res.good{color:var(--ok)}
+
+section{padding:72px 0}
+.eyebrow{font:600 .78rem var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--edge);margin:0 0 10px}
+.sec-h{font-size:clamp(1.8rem,3.2vw,2.5rem);margin-bottom:12px;font-weight:700}
+.sec-p{max-width:48rem;margin:0 0 30px;font-size:1.05rem}
+.card{background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:18px;min-width:0}
+
+/* theater */
+.theater{padding:18px}
+.controls{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;margin-bottom:14px}
+.ctl label,.ctl .lab{display:block;font:600 .74rem var(--mono);text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);margin-bottom:6px}
+.seg{display:inline-flex;flex-wrap:wrap;gap:3px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:3px}
+.seg button{all:unset;cursor:pointer;padding:7px 12px;border-radius:9px;font:600 .85rem var(--body);color:var(--ink2)}
+.seg button[aria-pressed="true"]{background:var(--card2);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line2)}
+.seg button:focus-visible{outline:3px solid var(--edge)}
+.road-wrap{position:relative;border-radius:14px;overflow:hidden;border:1px solid var(--line2)}
+#road{display:block;width:100%;height:auto;background:#1a2132}
+.hud{position:absolute;left:12px;top:10px;display:flex;gap:8px;flex-wrap:wrap;pointer-events:none}
+.hud span{background:rgba(10,15,26,.82);border:1px solid var(--line2);border-radius:8px;padding:4px 9px;font:500 .78rem var(--mono);color:var(--ink)}
+.hud .src{font-weight:700}
+.banner{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
+.banner div{background:rgba(10,15,26,.88);border:1px solid;border-radius:14px;padding:12px 20px;font:700 1.15rem var(--display)}
+.lat{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;margin:12px 0 6px;font:.8rem var(--mono);color:var(--ink3)}
+.lat .bar{height:10px;border-radius:99px;background:var(--bg2);position:relative;overflow:hidden;border:1px solid var(--line)}
+.lat .bar i{position:absolute;left:0;top:0;bottom:0;border-radius:99px}
+.timeline{display:flex;height:22px;border-radius:6px;overflow:hidden;cursor:pointer;border:1px solid var(--line);position:relative}
+.timeline i{flex:1}
+.timeline .head{position:absolute;top:-3px;bottom:-3px;width:3px;background:#fff;border-radius:2px;box-shadow:0 0 6px #fff}
+.playrow{display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.82rem;color:var(--ink3);margin:10px 0 0;padding:0;list-style:none}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.outcome{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+@media (max-width:760px){.outcome{grid-template-columns:1fr}}
+.outcome>div{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.outcome h3{font-size:1rem;margin-bottom:6px}
+.outcome p{margin:0;font-size:.92rem}
+.big{font:700 1.5rem var(--display)}
+.good{color:var(--ok)}.bad{color:var(--stale)}
+
+/* grid */
+.matrix{width:100%;border-collapse:separate;border-spacing:6px;font-size:.92rem}
+.matrix th{font:600 .85rem var(--body);color:var(--ink3);text-align:left;padding:4px 6px}
+.matrix th[scope=row]{color:var(--ink);font-family:var(--display);font-size:.98rem;white-space:nowrap}
+.matrix td{border-radius:12px;padding:12px 14px;border:1px solid var(--line);vertical-align:top;min-width:150px}
+.matrix td b{display:block;font:700 1.3rem var(--display);color:var(--ink)}
+.matrix td small{display:block;color:var(--ink2);font-size:.78rem;line-height:1.45}
+.scroll{overflow-x:auto}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.charts>*{min-width:0}
+@media (max-width:980px){.charts{grid-template-columns:1fr}}
+.chart-card{padding:20px}
+.chart-card h3{font-size:1.1rem;margin-bottom:4px}
+.chart-card p{margin:0 0 10px;font-size:.9rem;color:var(--ink3)}
+.chart{width:100%;height:auto;display:block}
+.chart text{font:12px var(--body);fill:var(--ink3)}
+
+.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.flow>*{min-width:0}
+@media (max-width:980px){.flow{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){.flow{grid-template-columns:1fr}}
+.node{padding:18px}
+.node .ic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:1.25rem;background:rgba(77,171,247,.12);border:1px solid rgba(77,171,247,.3);margin-bottom:10px}
+.node h3{font-size:1rem;margin-bottom:4px}
+.node p{margin:0;font-size:.88rem;color:var(--ink3)}
+.node code{display:inline-block;margin-top:8px;font-size:.72rem;color:var(--edge)}
+
+.story{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.story>*{min-width:0}
+@media (max-width:860px){.story{grid-template-columns:1fr}}
+.st{padding:20px;border-left:4px solid var(--edge)}
+.st .k{font:600 .75rem var(--mono);color:var(--edge)}
+.st h3{font-size:1.04rem;margin:6px 0 8px}
+.st p{margin:0 0 8px;font-size:.92rem}
+.st .fix{font-size:.88rem;color:var(--ink3);margin:0}
+.st .fix b{color:var(--ok)}
+.limits{padding:20px 22px}
+.limits ul{margin:0;padding-left:20px}
+.limits li{margin:6px 0;font-size:.94rem}
+.stack{display:flex;flex-wrap:wrap;gap:10px}
+.stack span{border:1px solid var(--line2);background:var(--card);border-radius:12px;padding:10px 14px;font-weight:500;color:var(--ink)}
+.stack span small{display:block;color:var(--ink3);font-weight:400;font-size:.78rem}
+footer{border-top:1px solid var(--line);padding:32px 0 52px;color:var(--ink3);font-size:.9rem}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+footer a{color:var(--ink2)}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="nav"><div class="wrap">
+  <a class="brand" href="#top" aria-label="Edge or Cloud home"><span class="logo" aria-hidden="true">⇄</span>Edge or Cloud</a>
+  <nav aria-label="Sections"><ul>
+    <li><a href="#replay">Replay</a></li><li><a href="#results">Results</a></li>
+    <li><a href="#how">How it works</a></li><li><a href="#story">Engineering</a></li>
+  </ul></nav>
+  <a class="btn small" href="https://github.com/GowthamReddyKotha14/edge-or-cloud">View on GitHub</a>
+</div></header>
+
+<main id="main">
+<div class="hero" id="top"><div class="wrap">
+  <div>
+    <span class="pill"><i aria-hidden="true"></i>Edge AI, digital twins, autonomous driving</span>
+    <h1>Where should a self-driving car <em>think?</em></h1>
+    <p class="sub">On the car, the brain is <strong>fast but small</strong>. In the cloud, it's <strong>smarter but has to cross the mobile network</strong>. I ran <strong>360 simulated drives</strong> through dense traffic over 5G, busy 4G, and a weak signal to see when each choice keeps the car safe.</p>
+    <div class="stats" aria-label="Headline results">
+      <div class="stat"><b id="s-weak">24 → 6</b><span>crashes in 30 weak-signal drives, cloud only vs with an edge backup</span></div>
+      <div class="stat"><b id="s-late">75%</b><span>of cloud answers arrived too late on weak signal</span></div>
+      <div class="stat"><b id="s-speed">0.4 vs 70 ms</b><span>edge vs cloud decision time</span></div>
+      <div class="stat"><b>360</b><span>closed-loop drives, 9 tests</span></div>
+    </div>
+    <div class="cta"><a class="btn primary" href="#replay">Watch the replays <span aria-hidden="true">→</span></a><a class="btn" href="#results">See all results</a></div>
+  </div>
+  <div class="versus" aria-label="Same drive, weak signal, two strategies">
+    <div class="vs"><div class="t"><b>Cloud only</b><span>weak signal, drive #803</span></div>
+      <canvas id="h1c" width="640" height="150" role="img" aria-label="Replay of a car relying only on the cloud over a weak signal; it crashes"></canvas>
+      <div class="res bad" id="h1r"></div></div>
+    <div class="vs"><div class="t"><b>Cloud + edge backup</b><span>same traffic, same signal</span></div>
+      <canvas id="h2c" width="640" height="150" role="img" aria-label="Replay of the same drive with an edge backup; it completes safely"></canvas>
+      <div class="res good" id="h2r"></div></div>
+  </div>
+</div></div>
+
+<section id="replay" aria-labelledby="rp-h"><div class="wrap">
+  <p class="eyebrow">Replay theater</p>
+  <h2 class="sec-h" id="rp-h">Same traffic, different brain</h2>
+  <p class="sec-p">Every replay is a real recorded drive from the benchmark: drive #803 through identical traffic. Pick a network and a strategy. The car's color shows who made each decision, and the bar shows how long the answer took against the 150 ms deadline.</p>
+  <div class="card theater">
+    <div class="controls">
+      <div class="ctl"><span class="lab" id="net-l">Network</span><div class="seg" role="group" aria-labelledby="net-l" id="net"></div></div>
+      <div class="ctl"><span class="lab" id="str-l">Strategy</span><div class="seg" role="group" aria-labelledby="str-l" id="str"></div></div>
+    </div>
+    <div class="road-wrap">
+      <canvas id="road" width="1100" height="230" role="img" aria-label=""></canvas>
+      <div class="hud" aria-hidden="true"><span id="h-t">t 0.0 s</span><span id="h-v">0 km/h</span><span class="src" id="h-src">edge</span></div>
+      <div class="banner" id="banner" hidden><div id="banner-t"></div></div>
+    </div>
+    <div class="lat" aria-hidden="true"><span>decision time</span><span class="bar"><i id="lat-bar"></i></span><span id="lat-v">0 ms</span></div>
+    <div class="timeline" id="tl" role="slider" tabindex="0" aria-label="Replay position" aria-valuemin="0" aria-valuemax="12" aria-valuenow="0"></div>
+    <div class="playrow">
+      <button type="button" class="btn small" id="play">Pause</button>
+      <button type="button" class="btn small" id="restart">Restart</button>
+      <ul class="legend">
+        <li><i style="background:var(--cloud)"></i>Cloud answered in time</li>
+        <li><i style="background:var(--edge)"></i>Edge decided</li>
+        <li><i style="background:var(--fallback)"></i>Cloud late, edge backup used</li>
+        <li><i style="background:var(--stale)"></i>Cloud late, no backup: kept doing the last thing</li>
+      </ul>
+    </div>
+    <div class="outcome">
+      <div><h3>This drive</h3><p class="big" id="o-drive"></p><p id="o-drive2"></p></div>
+      <div><h3>All 30 drives, this network and strategy</h3><p class="big" id="o-all"></p><p id="o-all2"></p></div>
+    </div>
+  </div>
+</div></section>
+
+<section id="results" aria-labelledby="res-h" style="padding-top:10px"><div class="wrap">
+  <p class="eyebrow">Results</p>
+  <h2 class="sec-h" id="res-h">Crashes in 30 drives, per network and strategy</h2>
+  <p class="sec-p">Every strategy drove the same 30 traffic scenarios, so differences come from the strategy, not luckier traffic. Ranges are 95% confidence intervals: with 30 drives, close numbers aren't meaningfully different.</p>
+  <div class="card scroll" tabindex="0" role="region" aria-label="Results matrix" style="padding:10px">
+    <table class="matrix"><thead><tr><th scope="col">Strategy</th><th scope="col">Good 5G</th><th scope="col">Busy 4G</th><th scope="col">Weak signal</th></tr></thead><tbody id="matrix"></tbody></table>
+  </div>
+  <div class="charts" style="margin-top:18px">
+    <div class="card chart-card">
+      <h3>Why the network matters</h3>
+      <p>Round-trip times for each network. The cloud needs about <span id="c-comp"></span> to think, so answers must come back within <span id="c-budget"></span> to meet the 150 ms deadline.</p>
+      <svg class="chart" id="lat-chart" viewBox="0 0 560 300" role="img" aria-label=""></svg>
+    </div>
+    <div class="card chart-card">
+      <h3>How often should the car ask?</h3>
+      <p>Adaptive switcher on 5G: it asks the cloud only when the edge model is unsure. Stricter gates ask more and crash less.</p>
+      <svg class="chart" id="sweep-chart" viewBox="0 0 560 300" role="img" aria-label=""></svg>
+    </div>
+  </div>
+</div></section>
+
+<section id="how" aria-labelledby="how-h" style="padding-top:10px"><div class="wrap">
+  <p class="eyebrow">How it works</p>
+  <h2 class="sec-h" id="how-h">Two brains, one deadline</h2>
+  <p class="sec-p">Five decisions per second, each with a hard 150 ms deadline. At the deadline the car acts on whatever answer it has.</p>
+  <div class="flow">
+    <div class="card node"><div class="ic" aria-hidden="true">🛣️</div><h3>Simulator</h3><p>highway-env: 3 lanes of dense, aggressive traffic. 12-second drives, 5 decisions a second.</p><code>sim.py</code></div>
+    <div class="card node"><div class="ic" aria-hidden="true">☁️</div><h3>Cloud: digital twin</h3><p>Copies nearby traffic and test-drives all 5 moves 1.6 s ahead. Accurate, but takes about 70 ms.</p><code>twin_plan()</code></div>
+    <div class="card node"><div class="ic" aria-hidden="true">⚡</div><h3>Edge: distilled net</h3><p id="edge-desc">A small network trained to imitate the twin, refined with DAgger. 0.4 ms.</p><code>edge.py</code></div>
+    <div class="card node"><div class="ic" aria-hidden="true">📶</div><h3>Network</h3><p>Log-normal round trips with burst streaks and lost packets. Swap in your own: <code>edgecloud measure</code>.</p><code>network.py</code></div>
+  </div>
+</div></section>
+
+<section id="story" aria-labelledby="st-h" style="padding-top:10px"><div class="wrap">
+  <p class="eyebrow">Engineering</p>
+  <h2 class="sec-h" id="st-h">What went wrong, and what I learned</h2>
+  <p class="sec-p">Most of this project was finding out why the first version gave misleading answers.</p>
+  <div class="story">
+    <div class="card st"><span class="k">PROBLEM 1, THE SIMULATOR</span><h3>The car couldn't brake</h3><p>By default the controlled car can't drop below 20 m/s while traffic drives at about 21, so crashes were often unavoidable no matter how smart the decision.</p><p class="fix"><b>Fix:</b> allow speeds down to 10 m/s. Planner crashes fell from 9 of 24 drives to 2.</p></div>
+    <div class="card st"><span class="k">PROBLEM 2, SPEED</span><h3>The digital twin was too slow</h3><p>Copying the whole simulator for each look-ahead took 170 ms, longer than a decision is allowed.</p><p class="fix"><b>Fix:</b> twin only the traffic within 70 m and step the physics directly: 12× faster.</p></div>
+    <div class="card st"><span class="k">PROBLEM 3, THE EDGE MODEL</span><h3>It learned "just drive fast"</h3><p>The first small model crashed in all 12 test drives. Bigger models didn't help; five designs all barely beat driving straight. It couldn't see the danger: nothing told it the car was mid-lane-change or that someone was cutting in.</p><p class="fix"><b>Fix:</b> add those signals plus time-to-collision, learn the planner's scores, not just its choice, and use DAgger. Result: 9 crashes in 24 drives instead of 24.</p></div>
+    <div class="card st"><span class="k">PROBLEM 4, MY OWN SWITCHER</span><h3>It was too cautious to help</h3><p>My first switcher asked the cloud only when an answer was almost certain to arrive in time. On busy 4G it never asked, so it did no better than having no cloud.</p><p class="fix"><b>Fix:</b> with a backup in place, a late answer only costs bandwidth, so ask whenever there's a fair (25%+) chance. Crashes on 4G fell from 7 to 2.</p></div>
+  </div>
+  <div class="card limits" style="margin-top:16px">
+    <h3 style="font-size:1.05rem;margin-bottom:8px">Honest limits</h3>
+    <ul>
+      <li>The three network profiles are modeling assumptions for illustration, not measurements. <code>edgecloud measure</code> records your real connection and fits a profile from it.</li>
+      <li>30 drives per cell: big gaps (24 vs 6 crashes) are clear; small ones (2 vs 4) are within noise.</li>
+      <li>Cloud compute time was measured on one laptop-class CPU. A real server would think faster, which helps cloud strategies.</li>
+      <li>highway-env is a simplified simulator, good for comparing strategies, not for certifying a vehicle.</li>
+    </ul>
+  </div>
+</div></section>
+
+<section aria-labelledby="stack-h" style="padding-top:10px"><div class="wrap">
+  <p class="eyebrow">Tech stack</p>
+  <h2 class="sec-h" id="stack-h" style="margin-bottom:22px">Built with</h2>
+  <div class="stack">
+    <span>Python<small>everything</small></span><span>highway-env<small>driving simulator</small></span>
+    <span>Gymnasium<small>environment API</small></span><span>scikit-learn<small>edge network</small></span>
+    <span>NumPy<small>network model, stats</small></span><span>pytest<small>9 tests</small></span>
+    <span>GitHub Actions<small>CI</small></span><span>Canvas<small>replay renderer</small></span>
+  </div>
+</div></section>
+</main>
+
+<footer><div class="wrap">
+  <span>Built by <strong style="color:var(--ink)">Gowtham Reddy Kotha</strong>. <a href="https://github.com/GowthamReddyKotha14/edge-or-cloud">Source on GitHub</a>. <a href="https://gowthamreddykotha14.github.io/Gowtham-Reddy-Portfolio/">Portfolio</a>.</span>
+  <span>Related to my master's research: Agentic AI precision control using digital twins in edge AI for autonomous vehicles.</span>
+</div></footer>
+
+<script src="data.js"></script>
+<script>
+(() => {
+const E = window.EC, $ = s => document.querySelector(s);
+const NETS = ["5g", "4g", "weak"], STRS = ["Edge only", "Cloud only", "Cloud + edge backup", "Adaptive switcher"];
+const COL = {cloud:"#4dabf7", edge:"#fcc419", fallback:"#b197fc", stale:"#ff6b6b", end:"#7d8aa3"};
+const NAME = {cloud:"cloud", edge:"edge", fallback:"edge backup", stale:"stale (no answer)", end:"end"};
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const pct = x => Math.round(x * 100) + "%";
+
+/* ---------- road renderer ---------- */
+function makeRenderer(canvas, opts = {}){
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width, H = canvas.height, view = opts.view || [-30, 70];
+  const sx = W / (view[1] - view[0]);
+  const laneW = 4, lanes = 3, roadPx = laneW * lanes * sx, top = (H - roadPx) / 2;
+  const X = dx => (dx - view[0]) * sx, Y = y => top + (y + laneW / 2) * sx;
+  function car(x, y, h, color, glow){
+    ctx.save(); ctx.translate(X(x), Y(y)); ctx.rotate(h);
+    const L = 5 * sx, Wd = 2 * sx;
+    if (glow) { ctx.shadowColor = color; ctx.shadowBlur = 16; }
+    ctx.fillStyle = color; ctx.beginPath(); ctx.roundRect(-L / 2, -Wd / 2, L, Wd, 3); ctx.fill();
+    ctx.shadowBlur = 0; ctx.fillStyle = "rgba(10,15,26,.55)"; ctx.fillRect(L * .12, -Wd / 2 + 2, L * .22, Wd - 4);
+    ctx.restore();
+  }
+  return function draw(fr, nxt, a){
+    ctx.fillStyle = "#1a2132"; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = "#232c40"; ctx.fillRect(0, top, W, roadPx);
+    const ex = fr.x + (nxt ? (nxt.x - fr.x) * a : 0);
+    ctx.strokeStyle = "#e9edf5"; ctx.lineWidth = 2;
+    [0, lanes].forEach(k => { ctx.beginPath(); ctx.moveTo(0, top + k * laneW * sx); ctx.lineTo(W, top + k * laneW * sx); ctx.stroke(); });
+    ctx.setLineDash([3 * sx, 4 * sx]); ctx.lineDashOffset = (ex % (7)) * sx; ctx.strokeStyle = "rgba(233,237,245,.55)";
+    for (let k = 1; k < lanes; k++) { ctx.beginPath(); ctx.moveTo(0, top + k * laneW * sx); ctx.lineTo(W, top + k * laneW * sx); ctx.stroke(); }
+    ctx.setLineDash([]);
+    const egoCol = COL[fr.src] || COL.edge;
+    for (const c of fr.cars) {
+      let [dx, y, h, isEgo, crashed] = c;
+      if (nxt) {   // smooth motion: match each car to its nearest position in the next frame
+        let best = null, bd = 1e9;
+        for (const d of nxt.cars) { if (d[3] !== isEgo) continue; const dist = Math.abs(d[0] - dx) + 2 * Math.abs(d[1] - y); if (dist < bd) { bd = dist; best = d; } }
+        if (best && bd < 10) { dx += (best[0] - dx) * a; y += (best[1] - y) * a; h += (best[2] - h) * a; }
+      }
+      car(dx, y, h, crashed ? "#ff6b6b" : isEgo ? egoCol : "#7d8aa3", isEgo || crashed);
+    }
+  };
+}
+
+/* ---------- player ---------- */
+function makePlayer(canvas, getRun, onFrame, opts){
+  const draw = makeRenderer(canvas, opts);
+  let t = 0, playing = !reduce, last = null, raf = null;
+  function render(){
+    const run = getRun(), F = run.frames, n = F.length;
+    const i = Math.min(Math.floor(t), n - 1), a = t - i;
+    draw(F[i], F[i + 1], a);
+    onFrame && onFrame(F[i], i, n, run);
+  }
+  function tick(ts){
+    if (last !== null && playing) {
+      const n = getRun().frames.length;
+      t += (ts - last) / 200;                          // 5 decisions per second, real time
+      if (t >= n - 1) { t = n - 1; render(); playing = false; setTimeout(() => { t = 0; playing = !reduce; }, 1600); }
+    }
+    last = ts; render(); raf = requestAnimationFrame(tick);
+  }
+  raf = requestAnimationFrame(tick);
+  return {seek(v){ t = v; render(); }, toggle(){ playing = !playing; return playing; }, restart(){ t = 0; playing = true; }, get t(){ return t; }, get playing(){ return playing; }};
+}
+const run = (n, s) => E.replays[`${n}|${s}|803`];
+function endText(r){ const F = r.frames, sec = ((F.length - 1) / 5).toFixed(1); return r.crashed ? `Crashed at ${sec} s` : `Completed all 12 s safely`; }
+
+/* hero */
+const hA = run("weak", "Cloud only"), hB = run("weak", "Cloud + edge backup");
+$("#h1r").textContent = endText(hA) + `: ${pct(E.grid["weak|Cloud only"].crash_rate)} of 30 drives crashed`;
+$("#h2r").textContent = endText(hB) + `: ${pct(E.grid["weak|Cloud + edge backup"].crash_rate)} of 30 drives crashed`;
+makePlayer($("#h1c"), () => hA, null, {view:[-18, 42]}); makePlayer($("#h2c"), () => hB, null, {view:[-18, 42]});
+const g = E.grid;
+$("#s-weak").textContent = `${g["weak|Cloud only"].crashes} → ${g["weak|Cloud + edge backup"].crashes}`;
+$("#s-late").textContent = pct(g["weak|Cloud only"].miss_rate);
+$("#s-speed").textContent = `0.4 vs ${Math.round(E.compute.median)} ms`;
+$("#edge-desc").textContent = `A ${E.edge.params.toLocaleString()}-parameter network trained to imitate the twin on ${E.edge.states.toLocaleString()} situations, refined with DAgger. Under 1 ms.`;
+
+/* theater */
+let net = "weak", str = "Cloud only";
+function seg(el, items, get, set, label = x => x){
+  items.forEach(it => { const b = document.createElement("button"); b.type = "button"; b.textContent = label(it);
+    b.addEventListener("click", () => { set(it); sync(); player.restart(); }); el.appendChild(b); });
+  return () => [...el.children].forEach((b, i) => b.setAttribute("aria-pressed", String(items[i] === get())));
+}
+const syncNet = seg($("#net"), NETS, () => net, v => net = v, k => E.networks[k]);
+const syncStr = seg($("#str"), STRS, () => str, v => str = v);
+const tl = $("#tl");
+function sync(){
+  syncNet(); syncStr();
+  const r = run(net, str), F = r.frames, c = g[`${net}|${str}`];
+  tl.innerHTML = F.slice(0, -1).map(f => `<i style="background:${COL[f.src]}"></i>`).join("") + `<span class="head" id="head"></span>`;
+  $("#o-drive").textContent = endText(r); $("#o-drive").className = "big " + (r.crashed ? "bad" : "good");
+  const cnt = {}; F.slice(0, -1).forEach(f => cnt[f.src] = (cnt[f.src] || 0) + 1);
+  $("#o-drive2").textContent = Object.entries(cnt).map(([k, v]) => `${v} ${NAME[k]}`).join(", ") + " decisions.";
+  $("#o-all").textContent = `${c.crashes} of 30 crashed`; $("#o-all").className = "big " + (c.crash_rate > .2 ? "bad" : "good");
+  $("#o-all2").textContent = `95% range ${pct(c.crash_ci[0])} to ${pct(c.crash_ci[1])}. Average speed ${(c.speed * 3.6).toFixed(0)} km/h. Asked the cloud on ${pct(c.offload_rate)} of decisions${c.offload_rate ? `, and ${pct(c.miss_rate)} of answers were late` : ""}.`;
+  $("#road").setAttribute("aria-label", `Replay of drive 803 on ${E.networks[net]} using ${str}: ${endText(r)}.`);
+}
+const player = makePlayer($("#road"), () => run(net, str), (f, i, n, r) => {
+  $("#h-t").textContent = `t ${(i / 5).toFixed(1)} s`;
+  $("#h-v").textContent = `${Math.round(f.v * 3.6)} km/h`;
+  const src = f.src === "end" ? (r.crashed ? "crashed" : "done") : NAME[f.src];
+  const hs = $("#h-src"); hs.textContent = src; hs.style.color = f.src === "end" ? (r.crashed ? "#ff6b6b" : "#51cf66") : COL[f.src];
+  const lat = f.lat || 0, bar = $("#lat-bar");
+  bar.style.width = Math.min(100, lat / 150 * 100) + "%"; bar.style.background = lat >= 150 ? "#ff6b6b" : COL[f.src] || "#7d8aa3";
+  $("#lat-v").textContent = f.src === "end" ? "" : (lat >= 150 ? "late (>150 ms)" : `${lat.toFixed(lat < 10 ? 1 : 0)} ms`);
+  const head = $("#head"); if (head) head.style.left = `calc(${(i / (n - 1)) * 100}% - 1px)`;
+  tl.setAttribute("aria-valuenow", (i / 5).toFixed(1));
+  const ban = $("#banner");
+  if (f.src === "end") { ban.hidden = false; const bt = $("#banner-t"); bt.textContent = r.crashed ? "💥 Crashed" : "✓ Drive complete"; bt.style.borderColor = bt.style.color = r.crashed ? "#ff6b6b" : "#51cf66"; }
+  else ban.hidden = true;
+});
+function seekFrom(clientX){ const rc = tl.getBoundingClientRect(), n = run(net, str).frames.length; player.seek(Math.max(0, Math.min(1, (clientX - rc.left) / rc.width)) * (n - 1)); }
+tl.addEventListener("click", e => seekFrom(e.clientX));
+tl.addEventListener("keydown", e => { const n = run(net, str).frames.length; if (e.key === "ArrowRight") player.seek(Math.min(n - 1, Math.floor(player.t) + 1)); if (e.key === "ArrowLeft") player.seek(Math.max(0, Math.floor(player.t) - 1)); });
+$("#play").addEventListener("click", () => { $("#play").textContent = player.toggle() ? "Pause" : "Play"; });
+$("#restart").addEventListener("click", () => { player.restart(); $("#play").textContent = "Pause"; });
+if (reduce) $("#play").textContent = "Play";
+sync();
+
+/* matrix */
+const heat = r => `rgba(255,107,107,${0.06 + r * 0.55})`;
+$("#matrix").innerHTML = STRS.map(s => `<tr><th scope="row">${s}</th>${NETS.map(n => { const c = g[`${n}|${s}`];
+  return `<td style="background:${heat(c.crash_rate)}"><b>${c.crashes} / 30</b><small>range ${pct(c.crash_ci[0])}–${pct(c.crash_ci[1])}</small><small>${(c.speed * 3.6).toFixed(0)} km/h, asks cloud ${pct(c.offload_rate)}</small></td>`; }).join("")}</tr>`).join("");
+
+/* latency chart */
+(function(){
+  const svg = $("#lat-chart"), W = 560, H = 300, L = 40, R = 14, T = 14, B = 40, bins = E.bins, nb = bins.length - 1;
+  const X = ms => L + ms / 400 * (W - L - R);
+  const max = Math.max(...NETS.map(k => Math.max(...E.hist[k].counts)));
+  const Y = c => H - B - c / max * (H - T - B);
+  const budget = E.deadline - E.compute.median;
+  $("#c-comp").textContent = `${Math.round(E.compute.median)} ms`; $("#c-budget").textContent = `about ${Math.round(budget)} ms`;
+  const nc = {"5g":"#51cf66","4g":"#fcc419","weak":"#ff6b6b"};
+  let s = `<rect x="${X(budget)}" y="${T}" width="${X(400) - X(budget)}" height="${H - T - B}" fill="rgba(255,107,107,.07)"/>`;
+  [0, 100, 200, 300, 400].forEach(v => s += `<text x="${X(v)}" y="${H - B + 18}" text-anchor="middle">${v === 400 ? "400+" : v}</text>`);
+  s += `<text x="${(L + W - R) / 2}" y="${H - 4}" text-anchor="middle">round-trip time (ms)</text>`;
+  NETS.forEach(k => { const c = E.hist[k].counts;
+    let d = `M${X(0)},${Y(0)}`; c.forEach((v, i) => d += ` L${X(bins[i])},${Y(v)} L${X(bins[i + 1])},${Y(v)}`); d += ` L${X(400)},${Y(0)}`;
+    s += `<path d="${d}" fill="${nc[k]}" fill-opacity=".14" stroke="${nc[k]}" stroke-width="2"/>`; });
+  s += `<line x1="${X(budget)}" x2="${X(budget)}" y1="${T}" y2="${H - B}" stroke="#fff" stroke-dasharray="5 4"/><text x="${X(budget) + 6}" y="${T + 14}" style="fill:#f1f4fa">late beyond here</text>`;
+  NETS.forEach((k, i) => s += `<circle cx="${W - 190}" cy="${T + 40 + i * 22}" r="6" fill="${nc[k]}"/><text x="${W - 178}" y="${T + 44 + i * 22}" style="fill:#c2cbdc">${E.hist[k].name}: ${pct(E.hist[k].on_time)} on time</text>`);
+  svg.innerHTML = s;
+  svg.setAttribute("aria-label", NETS.map(k => `${E.hist[k].name}: median ${E.hist[k].median} ms, ${pct(E.hist[k].on_time)} of answers on time`).join("; "));
+})();
+
+/* sweep chart */
+(function(){
+  const svg = $("#sweep-chart"), W = 560, H = 300, L = 48, R = 20, T = 20, B = 44, S = E.sweep;
+  const ymax = Math.max(...S.map(p => p.crashes)) + 1;
+  const X = a => L + a * (W - L - R), Y = c => T + (ymax - c) / ymax * (H - T - B);
+  let s = "";
+  for (let c = 0; c <= ymax; c += 2) s += `<line x1="${L}" x2="${W - R}" y1="${Y(c)}" y2="${Y(c)}" stroke="#22304d"/><text x="${L - 8}" y="${Y(c) + 4}" text-anchor="end">${c}</text>`;
+  [0, .25, .5, .75, 1].forEach(a => s += `<text x="${X(a)}" y="${H - B + 18}" text-anchor="middle">${a * 100}%</text>`);
+  s += `<text x="${(L + W - R) / 2}" y="${H - 6}" text-anchor="middle">decisions sent to the cloud</text>`;
+  s += `<text transform="translate(14 ${(T + H - B) / 2}) rotate(-90)" text-anchor="middle">crashes in 30 drives</text>`;
+  s += `<path d="${S.map((p, i) => (i ? "L" : "M") + X(p.ask) + "," + Y(p.crashes)).join(" ")}" fill="none" stroke="#4dabf7" stroke-width="2.5"/>`;
+  S.forEach(p => { const lab = p.label || `gate ${p.tau}`, chosen = p.tau === 0.3;
+    s += `<circle cx="${X(p.ask)}" cy="${Y(p.crashes)}" r="${chosen ? 9 : 6}" fill="${p.label ? "#fcc419" : "#4dabf7"}" stroke="#0a0f1a" stroke-width="2"/>`;
+    const below = chosen;
+    s += `<text x="${X(p.ask) + (p.label === "Always ask" ? 0 : chosen ? -12 : 10)}" y="${Y(p.crashes) + (below ? 26 : -12)}" text-anchor="${p.label === "Always ask" ? "end" : chosen ? "end" : "start"}" style="fill:${chosen ? "#f1f4fa" : "#c2cbdc"}">${lab}${chosen ? " (default)" : ""}</text>`; });
+  svg.innerHTML = s;
+  svg.setAttribute("aria-label", S.map(p => `${p.label || "gate " + p.tau}: asks ${pct(p.ask)}, ${p.crashes} crashes`).join("; "));
+})();
+})();
+</script>
+</body>
+</html>
